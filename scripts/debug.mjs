@@ -1,0 +1,27 @@
+import { chromium } from 'playwright-core';
+const browser = await chromium.launch({ channel: 'msedge', headless: true });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+page.on('pageerror', (e) => console.log('PAGEERROR', String(e)));
+await page.goto('http://localhost:5173/', { waitUntil: 'networkidle', timeout: 60000 });
+await page.locator('nav button:has-text("Students")').first().click();
+await page.waitForTimeout(500);
+await page.locator('button:has-text("Add Student")').click();
+await page.waitForTimeout(500);
+const dialog = page.locator('[role=dialog]');
+console.log('dialog count', await dialog.count());
+console.log('labels:', await dialog.locator('label').allInnerTexts());
+await dialog.locator('label:has-text("Student ID") input').fill('STU-TEST-1');
+await dialog.locator('label:has-text("Full Name") input').fill('Test Student');
+await dialog.locator('label:has-text("Date of Birth") input').fill('2010-05-01');
+await dialog.locator('label:has-text("Class") select').selectOption({ index: 1 });
+await dialog.locator('label:has-text("Parent/Guardian Name") input').fill('Test Parent');
+await dialog.locator('label:has-text("Parent Phone") input').fill('+1 555-9999');
+await dialog.locator('label:has-text("Email") input').fill('test@student.edu');
+await dialog.locator('label:has-text("Emergency Contact") input').fill('+1 555-8888');
+await dialog.locator('button:has-text("Save Student")').click();
+await page.waitForTimeout(800);
+console.log('dialog open after save:', await dialog.count());
+console.log('errors shown:', await page.locator('[role=alert]').allInnerTexts());
+console.log('Test Student count:', await page.locator('text=Test Student').count());
+await browser.close();
+
